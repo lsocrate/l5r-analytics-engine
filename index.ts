@@ -8,7 +8,7 @@ app.post("/api/game-report", async (ctx) => {
 });
 
 const server = app.listen({
-  port: process.env.NODE_ENV ? Number(process.env.NODE_ENV) : undefined,
+  port: process.env.PORT ? Number(process.env.PORT) : undefined,
 });
 
 console.log(`Listening on ${server.hostname}:${server.port}`);
