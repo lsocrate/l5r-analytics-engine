@@ -1,9 +1,13 @@
 import Bao from "baojs";
+import { initDb } from "./db";
 
+const db = await initDb();
 const app = new Bao();
 
 app.post("/api/game-report", async (ctx) => {
   const json: any = await ctx.req.json();
+
+  await db.reportCollection.insertOne(json);
   return ctx.sendPrettyJson(json);
 });
 

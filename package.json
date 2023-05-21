@@ -9,6 +9,7 @@
     "bun-types": "^0.5.0"
   },
   "dependencies": {
-    "baojs": "^0.2.1"
+    "baojs": "^0.2.1",
+    "mongodb": "^5.5.0"
   }
 }
