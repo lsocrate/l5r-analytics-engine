@@ -13,7 +13,7 @@ router.post("/api/game-report", async (context) => {
     return;
   }
 
-  await db.reportCollection.insertOne(payload);
+  await db.reportCollection.insertOne(parsed);
   context.response.status = 201;
   return;
 });
