@@ -1,5 +1,5 @@
 import { z } from "https://deno.land/x/zod@v3.21.4/mod.ts";
-import { differenceInMinutes } from "https://deno.land/x/date_fns@v2.22.1/index.js";
+import { difference } from "https://deno.land/std@0.177.1/datetime/difference.ts";
 
 const InputSchema = z.object({
   gameId: z.string(),
@@ -40,7 +40,9 @@ export async function parseGameReport(input: unknown) {
   const data = result.data;
   return {
     startedAt: data.startedAt,
-    durationInMinutes: differenceInMinutes(data.finishedAt, data.startedAt),
+    durationInMinutes: difference(data.finishedAt, data.startedAt, {
+      units: ["minutes"],
+    }).minutes!,
     winner: data.winner,
     winReason: data.winReason,
     gameMode: data.gameMode,
