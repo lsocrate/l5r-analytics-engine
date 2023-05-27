@@ -3,12 +3,43 @@ import {
   Player,
   Outcome,
 } from "https://deno.land/x/delo@v0.1.0/mod.ts";
-import type { DB, PlayerStatsDoc } from "./db.ts";
+import type { DB, Faction, PlayerStatsDoc } from "./db.ts";
+import { rating, rate } from "npm:openskill@^3.1.0";
 
 type PlayerInput = {
   name: string;
   faction: string;
 };
+
+export async function updateStats(
+  db: DB,
+  winner: PlayerInput,
+  loser: PlayerInput
+) {
+  const winnerDoc = await findDoc(db, winner);
+  const loserDoc = await findDoc(db, loser);
+
+  const [newWinnerOpenSkill, newLoserOpenSkill] = calcTrueSkill(
+    { player: winner, old: winnerDoc.openSkill },
+    { player: loser, old: loserDoc.openSkill }
+  );
+
+  const [newWinnerElo, newLoserElo] = calcElo(
+    { player: winner, old: winnerDoc.elo },
+    { player: loser, old: loserDoc.elo }
+  );
+
+  await db.playerStatsCollection.replaceOne(
+    { player_name: winner.name },
+    { ...winnerDoc, elo: newWinnerElo, openSkill: newWinnerOpenSkill },
+    { upsert: true }
+  );
+  await db.playerStatsCollection.replaceOne(
+    { player_name: loser.name },
+    { ...loserDoc, elo: newLoserElo, openSkill: newLoserOpenSkill },
+    { upsert: true }
+  );
+}
 
 export async function backfillStats(db: DB) {
   for await (const game of db.reportCollection.find().sort({ startedAt: 1 })) {
@@ -25,93 +56,85 @@ export async function backfillStats(db: DB) {
     );
 
     if (winner && loser) {
-      await updateElo(db, winner, loser);
+      await updateStats(db, winner, loser);
     }
   }
 }
 
-export async function updateElo(
-  db: DB,
-  winner: PlayerInput,
-  loser: PlayerInput
-) {
-  const winnerDoc = await findDoc(db, winner);
-  const loserDoc = await findDoc(db, loser);
+type EloInput = {
+  player: PlayerInput;
+  old: PlayerStatsDoc["elo"];
+};
 
+export function calcElo(winner: EloInput, loser: EloInput) {
   const period = new Period();
 
-  const overallWinner = new Player(winnerDoc.elo.general);
-  const overallLoser = new Player(loserDoc.elo.general);
+  const overallWinner = new Player(winner.old.general);
+  const overallLoser = new Player(loser.old.general);
   period.addGame(overallWinner, overallLoser, Outcome.WIN);
 
-  const clanWinner = clanPart(winner, winnerDoc);
-  const clanLoser = clanPart(loser, loserDoc);
-  if (clanWinner && clanLoser) {
-    period.addGame(clanWinner.eloPlayer, clanLoser.eloPlayer, Outcome.WIN);
+  const winnerFaction = parseClan(winner.player.faction);
+  let factionWinner: undefined | Player;
+  const loserFaction = parseClan(loser.player.faction);
+  let factionLoser: undefined | Player;
+  if (winnerFaction && loserFaction) {
+    factionWinner = new Player(winner.old[winnerFaction]);
+    factionLoser = new Player(winner.old[winnerFaction]);
+    period.addGame(factionWinner, factionLoser, Outcome.WIN);
   }
+
   period.calculate();
 
-  const newWinnerDoc = {
-    ...winnerDoc,
-    elo: {
-      ...winnerDoc.elo,
+  return [
+    {
+      ...winner.old,
       general: overallWinner.rating,
-      ...(clanWinner
-        ? { [clanWinner.clan]: clanWinner.eloPlayer.rating }
+      ...(winnerFaction && factionWinner
+        ? { [winnerFaction]: factionWinner.rating }
         : undefined),
     },
-  };
-
-  const newLoserDoc = {
-    ...loserDoc,
-    elo: {
-      ...loserDoc.elo,
+    {
+      ...loser.old,
       general: overallLoser.rating,
-      ...(clanLoser
-        ? { [clanLoser.clan]: clanLoser.eloPlayer.rating }
+      ...(loserFaction && factionLoser
+        ? { [loserFaction]: factionLoser.rating }
         : undefined),
     },
+  ];
+}
+
+export function initPlayerStats(playerName: string) {
+  return {
+    player_name: playerName,
+    elo: {
+      general: 1500,
+      crab: 1500,
+      crane: 1500,
+      dragon: 1500,
+      lion: 1500,
+      phoenix: 1500,
+      scorpion: 1500,
+      unicorn: 1500,
+    },
+    openSkill: {
+      general: { mu: 25, sigma: 8.333333 },
+      crab: { mu: 25, sigma: 8.333333 },
+      crane: { mu: 25, sigma: 8.333333 },
+      dragon: { mu: 25, sigma: 8.333333 },
+      lion: { mu: 25, sigma: 8.333333 },
+      phoenix: { mu: 25, sigma: 8.333333 },
+      scorpion: { mu: 25, sigma: 8.333333 },
+      unicorn: { mu: 25, sigma: 8.333333 },
+    },
   };
-
-  await db.playerStatsCollection.replaceOne(
-    { player_name: winner.name },
-    newWinnerDoc,
-    { upsert: true }
-  );
-  await db.playerStatsCollection.replaceOne(
-    { player_name: loser.name },
-    newLoserDoc,
-    { upsert: true }
-  );
 }
-
-function clanPart(player: PlayerInput, doc: PlayerStatsDoc) {
-  const clan = parseClan(player.faction);
-  return clan ? { clan, eloPlayer: new Player(doc.elo[clan]) } : undefined;
-}
-
 function findDoc(db: DB, player: PlayerInput) {
-  return db.playerStatsCollection.findOne({ player_name: player.name }).then(
-    (doc) =>
-      doc ?? {
-        player_name: player.name,
-        elo: {
-          general: 1500,
-          crab: 1500,
-          crane: 1500,
-          dragon: 1500,
-          lion: 1500,
-          phoenix: 1500,
-          scorpion: 1500,
-          unicorn: 1500,
-        },
-      }
-  );
+  return db.playerStatsCollection
+    .findOne({ player_name: player.name })
+    .then((doc) => doc ?? initPlayerStats(player.name));
 }
 
-function parseClan(
-  factionCandidate: string
-): undefined | keyof PlayerStatsDoc["elo"] {
+function parseClan(factionCandidate: string): undefined | Faction {
   switch (factionCandidate) {
     case "Crab Clan":
       return "crab";
@@ -128,4 +151,39 @@ function parseClan(
     case "Unicorn Clan":
       return "unicorn";
   }
+}
+
+type TrueSkillInput = {
+  player: PlayerInput;
+  old: PlayerStatsDoc["openSkill"];
+};
+
+function calcTrueSkill(
+  winner: TrueSkillInput,
+  loser: TrueSkillInput
+): [TrueSkillInput["old"], TrueSkillInput["old"]] {
+  const winnerNew = winner.old;
+  const loserNew = loser.old;
+
+  const general = rate([
+    [rating(winner.old.general)],
+    [rating(loser.old.general)],
+  ]);
+  const [[winnerGeneralNew], [loserGeneralNew]] = general;
+  winnerNew.general = winnerGeneralNew;
+  loserNew.general = loserGeneralNew;
+
+  const winnerFaction = parseClan(winner.player.faction);
+  const loserFaction = parseClan(loser.player.faction);
+  if (winnerFaction && loserFaction) {
+    const [[winnerFactionNew], [loserFactionNew]] = rate([
+      [rating(winner.old[winnerFaction])],
+      [rating(loser.old[loserFaction])],
+    ]);
+
+    winnerNew[winnerFaction] = winnerFactionNew;
+    loserNew[loserFaction] = loserFactionNew;
+  }
+
+  return [winnerNew, loserNew];
 }
