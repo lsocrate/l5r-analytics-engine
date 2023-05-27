@@ -5,12 +5,32 @@ import {
 } from "https://deno.land/x/delo@v0.1.0/mod.ts";
 import type { DB, PlayerStatsDoc } from "./db.ts";
 
-export type PlayerInput = {
+type PlayerInput = {
   name: string;
   faction: string;
 };
 
-export async function eloThing(
+export async function backfillStats(db: DB) {
+  for await (const game of db.reportCollection.find().sort({ startedAt: 1 })) {
+    const [winner, loser] = Object.values<PlayerInput>(game.players).reduce(
+      (res, player) => {
+        if (player.name === game.winner) {
+          res[0] = player;
+        } else {
+          res[1] = player;
+        }
+        return res;
+      },
+      [] as PlayerInput[]
+    );
+
+    if (winner && loser) {
+      await updateElo(db, winner, loser);
+    }
+  }
+}
+
+export async function updateElo(
   db: DB,
   winner: PlayerInput,
   loser: PlayerInput

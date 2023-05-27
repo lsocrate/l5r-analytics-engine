@@ -1,4 +1,5 @@
 import { z } from "https://deno.land/x/zod@v3.21.4/mod.ts";
+import { differenceInMinutes } from "https://deno.land/x/date_fns@v2.22.1/index.js";
 
 const InputSchema = z.object({
   gameId: z.string(),
@@ -14,6 +15,7 @@ const InputSchema = z.object({
       honor: z.number().int(),
       name: z.string(),
       faction: z.string(),
+      lostProvinces: z.number().optional(),
       deck: z.object({
         faction: z.object({
           name: z.string(),
@@ -35,18 +37,23 @@ export async function parseGameReport(input: unknown) {
     return;
   }
 
+  const data = result.data;
   return {
-    startedAt: result.data.startedAt,
-    finishedAt: result.data.finishedAt,
-    winner: result.data.winner,
-    winReason: result.data.winReason,
-    gameMode: result.data.gameMode,
-    initialFirstPlayer: result.data.initialFirstPlayer,
-    roundNumber: result.data.roundNumber,
-    players: result.data.players.reduce((grouped, player) => {
-      grouped[player.name] = arrangePlayer(player);
+    startedAt: data.startedAt,
+    durationInMinutes: differenceInMinutes(data.finishedAt, data.startedAt),
+    winner: data.winner,
+    winReason: data.winReason,
+    gameMode: data.gameMode,
+    initialFirstPlayer: data.initialFirstPlayer,
+    roundNumber: data.roundNumber,
+    players: data.players.reduce((grouped, player) => {
+      if (player.name === data.winner) {
+        grouped.winner = arrangePlayer(player);
+      } else {
+        grouped.loser = arrangePlayer(player);
+      }
       return grouped;
-    }, {} as Partial<Record<string, ReturnType<typeof arrangePlayer>>>),
+    }, {} as Record<"winner" | "loser", ReturnType<typeof arrangePlayer>>),
   };
 }
 
@@ -54,6 +61,7 @@ function arrangePlayer(input: {
   honor: number;
   name: string;
   faction: string;
+  lostProvinces?: number;
   deck: {
     faction: {
       value: string;
@@ -70,6 +78,7 @@ function arrangePlayer(input: {
     name: input.name,
     honor: input.honor,
     faction: input.faction,
+    lostProvinces: input.lostProvinces,
     deck: {
       stronghold: input.deck.stronghold,
       role: input.deck.role,

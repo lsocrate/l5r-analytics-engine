@@ -1,9 +1,4 @@
-import {
-  Collection,
-  Database,
-  Document,
-  MongoClient,
-} from "https://deno.land/x/mongo@v0.31.2/mod.ts";
+import { MongoClient } from "https://deno.land/x/mongo@v0.31.2/mod.ts";
 
 const client = new MongoClient();
 
@@ -21,18 +16,16 @@ export type PlayerStatsDoc = {
   };
 };
 
-export type DB = {
-  db: Database;
-  reportCollection: Collection<Document>;
-  playerStatsCollection: Collection<PlayerStatsDoc>;
-};
+export type DB = Awaited<ReturnType<typeof initDb>>;
 
-export async function initDb(): Promise<DB> {
+export async function initDb() {
   await client.connect(Deno.env.get("MONGO_URL")!);
   const db = client.database("prod");
-  const reportCollection = db.collection("reports_v1");
-  const playerStatsCollection =
-    db.collection<PlayerStatsDoc>("player_stats_v1");
-
-  return { db, reportCollection, playerStatsCollection };
+  return {
+    db,
+    reportCollection: db.collection("reports_v1"),
+    reportCollectionV2: db.collection("reports_v2"),
+    reportCollectionV2_pt: db.collection("reports_v2_pt"),
+    playerStatsCollection: db.collection<PlayerStatsDoc>("player_stats_v1"),
+  };
 }
