@@ -43,8 +43,12 @@ export async function updateStats(
 
 export async function backfillStats(db: DB) {
   for await (const game of db.reportCollection.find().sort({ startedAt: 1 })) {
-    const [winner, loser] = Object.values<PlayerInput>(game.players).reduce(
+    const [winner, loser] = Object.values(game.players).reduce(
       (res, player) => {
+        if (!player) {
+          return res;
+        }
+
         if (player.name === game.winner) {
           res[0] = player;
         } else {
