@@ -4,7 +4,7 @@ import {
   Outcome,
 } from "https://deno.land/x/delo@v0.1.0/mod.ts";
 import type { DB, Faction, PlayerStatsDoc } from "./db.ts";
-import { rating, rate } from "npm:openskill@^3.1.0";
+import { rating, rate } from "https://esm.sh/openskill@3.1.0";
 
 type PlayerInput = {
   name: string;
