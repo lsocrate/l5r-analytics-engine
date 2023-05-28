@@ -67,3 +67,34 @@ export const createGameReportOld =
     context.response.status = 201;
     return;
   };
+
+export const listPlayerStats =
+  (db: DB): RouterMiddleware<"/api/player-stats"> =>
+  async (context) => {
+    const stats = await db.playerStatsCollection
+      .aggregate<{ player_name: string; elo: number; os: number }>([
+        {
+          $project: {
+            _id: 0,
+            player_name: 1,
+            elo: "$elo.general",
+            openSkill: {
+              $let: {
+                vars: {
+                  mean: "$openSkill.general.mu",
+                  s3: { $multiply: ["$openSkill.general.sigma", 3] },
+                },
+                in: {
+                  $subtract: ["$$mean", "$$s3"],
+                },
+              },
+            },
+          },
+        },
+        { $sort: { openSkill: -1 } },
+      ])
+      .toArray();
+
+    context.response.body = stats;
+    context.response.status = 200;
+  };
