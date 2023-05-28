@@ -1,4 +1,4 @@
-import { rating, rate } from "npm:openskill@^3.1.0";
+import { rating, rate } from "https://esm.sh/openskill@3.1.0";
 import { Rating } from "../../../Library/Caches/deno/npm/registry.npmjs.org/openskill/3.1.0/dist/types.d.ts";
 import { CardStatsDoc, DB, Deck } from "./db.ts";
 

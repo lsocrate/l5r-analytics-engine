@@ -219,55 +219,18 @@
     "https://deno.land/x/zod@v3.21.4/index.ts": "d27aabd973613985574bc31f39e45cb5d856aa122ef094a9f38a463b8ef1a268",
     "https://deno.land/x/zod@v3.21.4/locales/en.ts": "a7a25cd23563ccb5e0eed214d9b31846305ddbcdb9c5c8f508b108943366ab4c",
     "https://deno.land/x/zod@v3.21.4/mod.ts": "64e55237cb4410e17d968cd08975566059f27638ebb0b86048031b987ba251c4",
-    "https://deno.land/x/zod@v3.21.4/types.ts": "b5d061babea250de14fc63764df5b3afa24f2b088a1d797fc060ba49a0ddff28"
-  },
-  "npm": {
-    "specifiers": {
-      "openskill@^3.1.0": "openskill@3.1.0"
-    },
-    "packages": {
-      "@types/gaussian@1.2.0": {
-        "integrity": "sha512-4rHzt7QTNDGGnlWGzgBc3S+W0fCwkENSfGhDYhUb/fM4vdP0o7fT8OCuQ8kqnVFu3MACGy9KOWG1ugcZuMIsXw==",
-        "dependencies": {}
-      },
-      "@types/ramda@0.29.0": {
-        "integrity": "sha512-TY9eKsklU43CmAbFJPKDUyBjleZ4EFAkbJeQRF4e8byGkOw1CjDcwg5EGa0Bgf0Kgs9BE9OU4UzQWnQDHnvMtA==",
-        "dependencies": {
-          "types-ramda": "types-ramda@0.29.2"
-        }
-      },
-      "gaussian@1.3.0": {
-        "integrity": "sha512-rYQ0ESfB+z0t7G95nHH80Zh7Pgg9A0FUYoZqV0yPec5WJZWKIHV2MPYpiJNy8oZAeVqyKwC10WXKSCnUQ5iDVg==",
-        "dependencies": {}
-      },
-      "openskill@3.1.0": {
-        "integrity": "sha512-YLp7HMAFZGi/oBLoDcKI7dyhyY1ORwdIEvlIX1ju+71GqjPIEtDZ87NJVUueIfbBbS93eLEeZ2qg4GH9wQOUUg==",
-        "dependencies": {
-          "@types/gaussian": "@types/gaussian@1.2.0",
-          "@types/ramda": "@types/ramda@0.29.0",
-          "gaussian": "gaussian@1.3.0",
-          "ramda": "ramda@0.29.0",
-          "sort-unwind": "sort-unwind@2.1.2"
-        }
-      },
-      "ramda@0.29.0": {
-        "integrity": "sha512-BBea6L67bYLtdbOqfp8f58fPMqEwx0doL+pAi8TZyp2YWz8R9G8z9x75CZI8W+ftqhFHCpEX2cRnUUXK130iKA==",
-        "dependencies": {}
-      },
-      "sort-unwind@2.1.2": {
-        "integrity": "sha512-k9QdYgq53oDXiteKqc58OK/8zpXmaMViN32vKZ0sCQQvczVErXXFWmpDB/+3cWD/Yc04+S7e2KX3Hdf6/l3iQA==",
-        "dependencies": {}
-      },
-      "ts-toolbelt@9.6.0": {
-        "integrity": "sha512-nsZd8ZeNUzukXPlJmTBwUAuABDe/9qtVDelJeT/qW0ow3ZS3BsQJtNkan1802aM9Uf68/Y8ljw86Hu0h5IUW3w==",
-        "dependencies": {}
-      },
-      "types-ramda@0.29.2": {
-        "integrity": "sha512-HpLcR0ly2EfXQwG8VSI5ov6ml7PvtT+u+cp+7lZLu7q4nhnPDVW+rUTC1uy/SNs4aAyTUXri5M/LyhgvjEXJDg==",
-        "dependencies": {
-          "ts-toolbelt": "ts-toolbelt@9.6.0"
-        }
-      }
-    }
+    "https://deno.land/x/zod@v3.21.4/types.ts": "b5d061babea250de14fc63764df5b3afa24f2b088a1d797fc060ba49a0ddff28",
+    "https://esm.sh/openskill@3.1.0": "2c1e0ee5820e9ffda5a77c7dedcfb4c7e6f951c833905f02300e51ea76d8e6b2",
+    "https://esm.sh/v124/gaussian@1.3.0/deno/gaussian.mjs": "ee6afdbc00ffe8409ffceb50d472a988f97afb53125da0fe51721a087907de80",
+    "https://esm.sh/v124/openskill@3.1.0/deno/openskill.mjs": "44df3ef0413b3fe1539f5c47c19bb09328a9f8c82c41b266b3a9a69c96564173",
+    "https://esm.sh/v124/openskill@3.1.0/dist/index.d.ts": "faf699e78a843ed5769626da89b82c0a18cadbd53a8b2d398089ca392bda7106",
+    "https://esm.sh/v124/openskill@3.1.0/dist/ordinal.d.ts": "3e482c10a915a40fcbb286c6c5e04a54463e836d0f98f28913a4b2d2683c6e48",
+    "https://esm.sh/v124/openskill@3.1.0/dist/predict-draw.d.ts": "6615feea7fe4c2539b39c17b3c750c1753ea753e407edf7efb3c90f09d6621ae",
+    "https://esm.sh/v124/openskill@3.1.0/dist/predict-win.d.ts": "1b043bc47c3b34b712663979e6db959d6a59b950708ec4c1c12e9fc653b3cdbf",
+    "https://esm.sh/v124/openskill@3.1.0/dist/rate.d.ts": "69f5cdf76420cbcb2445a23c8121726d948b40d61cae61f605bd3aace5b54ad4",
+    "https://esm.sh/v124/openskill@3.1.0/dist/rating.d.ts": "8d5f5ded38d15a8e542ebd9eaa373902a2c013999b0c2679d3cb6cfbc8083ef3",
+    "https://esm.sh/v124/openskill@3.1.0/dist/types.d.ts": "4bfaecdd981466df8d81269ace88ef0c83446f02f73bb6dd8941fea60ff77a20",
+    "https://esm.sh/v124/ramda@0.29.0/deno/ramda.mjs": "f0e6d04de8bac74252fb3e2c057ddce3c9936600598975cf4b3ae0b6d459a3d9",
+    "https://esm.sh/v124/sort-unwind@2.1.2/deno/sort-unwind.mjs": "a8d2b014f0c7d66027d77b352997b65c1374ee3c86afa1507c50cb54dc7ab320"
   }
 }
