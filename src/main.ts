@@ -18,9 +18,9 @@ router.get("/api/player-stats", listPlayerStats(db));
 //   await backfillStats(db);
 // });
 
-router.post("/api/backfill/cardstats", async () => {
-  await backfillCardData(db);
-});
+// router.post("/api/backfill/cardstats", async () => {
+//   await backfillCardData(db);
+// });
 
 const app = new Application();
 app.use(router.routes());

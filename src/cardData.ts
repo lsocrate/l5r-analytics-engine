@@ -1,6 +1,6 @@
 import { rating, rate } from "npm:openskill@^3.1.0";
 import { Rating } from "../../../Library/Caches/deno/npm/registry.npmjs.org/openskill/3.1.0/dist/types.d.ts";
-import { DB, Deck } from "./db.ts";
+import { CardStatsDoc, DB, Deck } from "./db.ts";
 
 function deckToTeam(deck: Deck) {
   const allCards = [`${deck.stronghold}@1`, `${deck.role}@1`];
@@ -21,7 +21,7 @@ function deckToTeam(deck: Deck) {
 }
 
 function rateCardsInMatchup(
-  store: Map<string, Rating>,
+  store: Map<string, CardStatsDoc>,
   winnerDeck: Deck,
   loserDeck: Deck
 ) {
@@ -51,6 +51,7 @@ function rateCardsInMatchup(
 }
 
 export async function backfillCardData(db: DB) {
+  const inMemory = new Map<string, CardStatsDoc>();
   for await (const game of db.reportCollection.find().sort({ startedAt: 1 })) {
     const [winner, loser] = Object.values(game.players).reduce(
       (res, player) => {
@@ -68,7 +69,7 @@ export async function backfillCardData(db: DB) {
     );
 
     if (winner && loser) {
-      await backfillProcess(db, winner, loser);
+      backfillProcess(inMemory, winner, loser);
     }
   }
 
@@ -78,31 +79,24 @@ export async function backfillCardData(db: DB) {
     const winner = game.players.winner.deck;
     const loser = game.players.loser.deck;
     if (winner && loser) {
-      await backfillProcess(db, winner, loser);
+      backfillProcess(inMemory, winner, loser);
     }
   }
+
+  await db.cardStatsCollection.insertMany(Array.from(inMemory.values()));
 }
 
-async function backfillProcess(db: DB, winner: Deck, loser: Deck) {
-  const oldStats = await db.cardStatsCollection
-    .aggregate([{ $project: { card_entry: 1, mu: 1, sigma: 1 } }])
-    .toArray();
-  const store = new Map(
-    oldStats.map((entry) => [
-      entry.card_entry,
-      { mu: entry.mu, sigma: entry.sigma },
-    ])
-  );
-  for (const newRating of rateCardsInMatchup(store, winner, loser)) {
-    await db.cardStatsCollection.replaceOne(
-      { card_entry: newRating.card },
-      {
-        card_id: newRating.card.split("@")[0],
-        card_entry: newRating.card,
-        mu: newRating.rating.mu,
-        sigma: newRating.rating.sigma,
-      },
-      { upsert: true }
-    );
+function backfillProcess(
+  inMemory: Map<string, CardStatsDoc>,
+  winner: Deck,
+  loser: Deck
+) {
+  for (const newRating of rateCardsInMatchup(inMemory, winner, loser)) {
+    inMemory.set(newRating.card, {
+      card_id: newRating.card.split("@")[0],
+      card_entry: newRating.card,
+      mu: newRating.rating.mu,
+      sigma: newRating.rating.sigma,
+    });
   }
 }
