@@ -1,6 +1,10 @@
 import { rating, rate } from "https://esm.sh/openskill@3.1.0";
-import { Rating } from "../../../Library/Caches/deno/npm/registry.npmjs.org/openskill/3.1.0/dist/types.d.ts";
 import { CardStatsDoc, DB, Deck } from "./db.ts";
+
+type Rating = {
+  mu: number;
+  sigma: number;
+};
 
 function deckToTeam(deck: Deck) {
   const allCards = [`${deck.stronghold}@1`, `${deck.role}@1`];
