@@ -56,7 +56,9 @@ function rateCardsInMatchup(
 
 export async function backfillCardData(db: DB) {
   const inMemory = new Map<string, CardStatsDoc>();
-  for await (const game of db.reportCollection.find().sort({ startedAt: 1 })) {
+  for await (const game of db.reportCollection
+    .find({ gameMode: "emerald" })
+    .sort({ startedAt: 1 })) {
     const [winner, loser] = Object.values(game.players).reduce(
       (res, player) => {
         if (!player) {
@@ -78,7 +80,7 @@ export async function backfillCardData(db: DB) {
   }
 
   for await (const game of db.reportCollectionV2
-    .find()
+    .find({ gameMode: "emerald" })
     .sort({ startedAt: 1 })) {
     const winner = game.players.winner.deck;
     const loser = game.players.loser.deck;
