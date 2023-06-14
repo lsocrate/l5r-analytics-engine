@@ -2,13 +2,14 @@ import { Application, Router } from "https://deno.land/x/oak@v12.5.0/mod.ts";
 import { initDb } from "./db.ts";
 
 import { backfillCardData } from "./cardData.ts";
+import { listCardStats } from "./routes/cardStats.ts";
+import { backfillClanData } from "./routes/clanStats.ts";
 import {
   createGameReport,
   createGameReportOld,
   listPlayerStats,
 } from "./routes/gameReport.ts";
 import { listGameStats } from "./routes/gameStats.ts";
-import { listCardStats } from "./routes/cardStats.ts";
 
 const db = await initDb();
 
@@ -24,6 +25,9 @@ router.get("/api/game-stats", listGameStats(db));
 
 router.post("/api/backfill/cardstats", async () => {
   await backfillCardData(db);
+});
+router.post("/api/backfill/clanstats", async () => {
+  await backfillClanData(db);
 });
 router.get("/api/card-stats", listCardStats(db));
 

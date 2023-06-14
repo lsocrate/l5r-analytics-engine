@@ -24,6 +24,19 @@ export type CardStatsDoc = {
   sigma: number;
 };
 
+export type ClanStatsDoc = {
+  clan: Faction;
+  mu: number;
+  sigma: number;
+  winVersus: Record<
+    Faction,
+    {
+      value: number;
+      games: number;
+    }
+  >;
+};
+
 export type DB = Awaited<ReturnType<typeof initDb>>;
 
 export type Deck = {
@@ -82,5 +95,6 @@ export async function initDb() {
     reportCollectionV2_pt: db.collection<ReportV2>("reports_v2_pt"),
     playerStatsCollection: db.collection<PlayerStatsDoc>("player_stats_v1"),
     cardStatsCollection: db.collection<CardStatsDoc>("card_stats_v1"),
+    clanStatsCollection: db.collection<ClanStatsDoc>("clan_stats_v1"),
   };
 }

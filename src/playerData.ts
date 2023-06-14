@@ -1,10 +1,11 @@
 import {
+  Outcome,
   Period,
   Player,
-  Outcome,
 } from "https://deno.land/x/delo@v0.1.0/mod.ts";
-import type { DB, Faction, PlayerStatsDoc } from "./db.ts";
-import { rating, rate } from "https://esm.sh/openskill@3.1.0";
+import { rate, rating } from "https://esm.sh/openskill@3.1.0";
+import { parseClan } from "./data/clan.ts";
+import type { DB, PlayerStatsDoc } from "./db.ts";
 
 type PlayerInput = {
   name: string;
@@ -136,25 +137,6 @@ function findDoc(db: DB, player: PlayerInput) {
   return db.playerStatsCollection
     .findOne({ player_name: player.name })
     .then((doc) => doc ?? initPlayerStats(player.name));
-}
-
-function parseClan(factionCandidate: string): undefined | Faction {
-  switch (factionCandidate) {
-    case "Crab Clan":
-      return "crab";
-    case "Crane Clan":
-      return "crane";
-    case "Dragon Clan":
-      return "dragon";
-    case "Lion Clan":
-      return "lion";
-    case "Phoenix Clan":
-      return "phoenix";
-    case "Scorpion Clan":
-      return "scorpion";
-    case "Unicorn Clan":
-      return "unicorn";
-  }
 }
 
 type TrueSkillInput = {
