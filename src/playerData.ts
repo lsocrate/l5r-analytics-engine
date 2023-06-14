@@ -3,9 +3,9 @@ import {
   Period,
   Player,
 } from "https://deno.land/x/delo@v0.1.0/mod.ts";
-import { rate, rating } from "https://esm.sh/openskill@3.1.0";
 import { parseClan } from "./data/clan.ts";
 import type { DB, PlayerStatsDoc } from "./db.ts";
+import { rate, rating } from "./libs/openskill.ts";
 
 type PlayerInput = {
   name: string;

@@ -1,5 +1,5 @@
-import { rating, rate } from "https://esm.sh/openskill@3.1.0";
 import { CardStatsDoc, DB, Deck } from "./db.ts";
+import { rate, rating } from "./libs/openskill.ts";
 
 type Rating = {
   mu: number;

@@ -1,6 +1,6 @@
-import { rate } from "https://esm.sh/openskill@3.1.0";
 import { parseClan } from "../data/clan.ts";
 import { ClanStatsDoc, DB, Faction } from "../db.ts";
+import { rate } from "../libs/openskill.ts";
 
 export async function backfillClanData(db: DB) {
   const inMemory = new Map<Faction, ClanStatsDoc>();
