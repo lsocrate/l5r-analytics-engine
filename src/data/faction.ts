@@ -1,6 +1,13 @@
-import type { Faction } from "../db.ts";
+export type Faction =
+  | "crab"
+  | "crane"
+  | "dragon"
+  | "lion"
+  | "phoenix"
+  | "scorpion"
+  | "unicorn";
 
-export function parseClan(factionCandidate: string): undefined | Faction {
+export function parseFaction(factionCandidate: string): undefined | Faction {
   switch (factionCandidate) {
     case "Crab Clan":
       return "crab";
