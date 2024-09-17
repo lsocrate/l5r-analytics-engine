@@ -3,6 +3,7 @@ import type { JigokuEnv } from "./jigoku_env";
 import { parseGameReport } from "./parse_game_report";
 
 const server = Bun.serve({
+  port: process.env.PORT!,
   fetch(req) {
     return route(req);
   },
