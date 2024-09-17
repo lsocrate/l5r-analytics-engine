@@ -2,7 +2,7 @@ import { Db, MongoClient } from "mongodb";
 import type { GameReport } from "./parse_game_report";
 import type { JigokuEnv } from "./jigoku_env";
 
-const client = new MongoClient(process.env.MONGODB_URL!);
+const client = new MongoClient(process.env.MONGO_URL!);
 const dbName = "prod";
 
 export async function insertGameReport(report: GameReport, env: JigokuEnv) {
