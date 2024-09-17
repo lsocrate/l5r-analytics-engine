@@ -1,5 +1,4 @@
-import { z } from "https://deno.land/x/zod@v3.21.4/mod.ts";
-import { difference } from "https://deno.land/std@0.177.1/datetime/difference.ts";
+import { z } from "zod";
 
 const InputSchema = z.object({
   gameId: z.string(),
@@ -27,11 +26,27 @@ const InputSchema = z.object({
         dynastyCards: z.array(z.string()),
         provinceCards: z.array(z.string()),
       }),
-    })
+    }),
   ),
 });
 
-export async function parseGameReport(input: unknown) {
+export interface GameReport {
+  startedAt: Date;
+  durationInMinutes: number;
+  winner: string;
+  winReason: string;
+  gameMode: string;
+  initialFirstPlayer: string;
+  roundNumber: number;
+  players: {
+    winner: Player;
+    loser: Player;
+  };
+}
+
+export async function parseGameReport(
+  input: unknown,
+): Promise<GameReport | undefined> {
   const result = await InputSchema.safeParseAsync(input);
   if (!result.success) {
     return;
@@ -40,22 +55,37 @@ export async function parseGameReport(input: unknown) {
   const data = result.data;
   return {
     startedAt: data.startedAt,
-    durationInMinutes: difference(data.finishedAt, data.startedAt, {
-      units: ["minutes"],
-    }).minutes!,
+    durationInMinutes: differenceInMinutes(data.finishedAt, data.startedAt),
     winner: data.winner,
     winReason: data.winReason,
     gameMode: data.gameMode,
     initialFirstPlayer: data.initialFirstPlayer,
     roundNumber: data.roundNumber,
-    players: data.players.reduce((grouped, player) => {
-      if (player.name === data.winner) {
-        grouped.winner = arrangePlayer(player);
-      } else {
-        grouped.loser = arrangePlayer(player);
-      }
-      return grouped;
-    }, {} as Record<"winner" | "loser", ReturnType<typeof arrangePlayer>>),
+    players: data.players.reduce(
+      (grouped, player) => {
+        if (player.name === data.winner) {
+          grouped.winner = arrangePlayer(player);
+        } else {
+          grouped.loser = arrangePlayer(player);
+        }
+        return grouped;
+      },
+      {} as Record<"winner" | "loser", ReturnType<typeof arrangePlayer>>,
+    ),
+  };
+}
+
+interface Player {
+  name: string;
+  honor: number;
+  faction: string;
+  lostProvinces: number;
+  deck: {
+    stronghold: string;
+    role: string;
+    conflictCards: Array<{ count: number; card: string }>;
+    dynastyCards: Array<{ count: number; card: string }>;
+    provinceCards: Array<string>;
   };
 }
 
@@ -71,16 +101,16 @@ function arrangePlayer(input: {
     };
     stronghold: string;
     role: string;
-    conflictCards: string[];
-    dynastyCards: string[];
-    provinceCards: string[];
+    conflictCards: Array<string>;
+    provinceCards: Array<string>;
+    dynastyCards: Array<string>;
   };
-}) {
+}): Player {
   return {
     name: input.name,
     honor: input.honor,
     faction: input.faction,
-    lostProvinces: input.lostProvinces,
+    lostProvinces: input.lostProvinces ?? 0,
     deck: {
       stronghold: input.deck.stronghold,
       role: input.deck.role,
@@ -89,6 +119,10 @@ function arrangePlayer(input: {
       dynastyCards: input.deck.dynastyCards.map(arrangeMultiCard),
     },
   };
+}
+
+function differenceInMinutes(a: Date, b: Date) {
+  return Math.round((a.getTime() - b.getTime()) / 60_000);
 }
 
 function arrangeMultiCard(input: string): { count: number; card: string } {

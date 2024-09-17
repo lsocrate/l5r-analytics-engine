@@ -1,39 +1,39 @@
-import { Application, Router } from "https://deno.land/x/oak@v12.5.0/mod.ts";
-import { initDb } from "./db.ts";
+import { aggregateGamesPerDay, insertGameReport } from "./db";
+import type { JigokuEnv } from "./jigoku_env";
+import { parseGameReport } from "./parse_game_report";
 
-import { backfillCardData } from "./cardData.ts";
-import { listCardStats } from "./routes/cardStats.ts";
-import { backfillClanData } from "./routes/clanStats.ts";
-import {
-  createGameReport,
-  createGameReportOld,
-  listPlayerStats,
-} from "./routes/gameReport.ts";
-import { listGameStats } from "./routes/gameStats.ts";
-
-const db = await initDb();
-
-const router = new Router();
-router.post("/api/game-report", createGameReportOld(db));
-router.post("/api/game-report/:env", createGameReport(db));
-router.get("/api/player-stats", listPlayerStats(db));
-router.get("/api/game-stats", listGameStats(db));
-
-// router.post("/api/backfill", async () => {
-//   await backfillStats(db);
-// });
-
-router.post("/api/backfill/cardstats", async () => {
-  await backfillCardData(db);
+const server = Bun.serve({
+  fetch(req) {
+    return route(req);
+  },
 });
-router.post("/api/backfill/clanstats", async () => {
-  await backfillClanData(db);
-});
-router.get("/api/card-stats", listCardStats(db));
 
-const app = new Application();
-app.use(router.routes());
-app.use(router.allowedMethods());
+console.log(`Listening on port ${server.port}`);
 
-const port = parseInt(Deno.env.get("PORT") ?? "8080", 10);
-await app.listen({ port });
+function route(req: Request) {
+  const url = new URL(req.url);
+  switch (`${req.method} ${url.pathname}`) {
+    case "POST /api/game-report/live":
+      return createGameReport(req, "live");
+    case "POST /api/game-report/playtest":
+      return createGameReport(req, "playtest");
+    case "GET /api/game-stats":
+      return listGameStats(req);
+    default:
+      return new Response("Not found", { status: 404 });
+  }
+}
+
+async function createGameReport(req: Request, env: JigokuEnv) {
+  const body = await req.json();
+  const report = await parseGameReport(body);
+  if (!report) return new Response("Invalid game report", { status: 400 });
+
+  await insertGameReport(report, env);
+  return new Response("Created", { status: 201 });
+}
+
+async function listGameStats(_req: Request) {
+  const gamesPerDay = await aggregateGamesPerDay();
+  return Response.json(gamesPerDay);
+}
